@@ -8,7 +8,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - run: cl /O2 /std:c++17 /EHsc /D_UNICODE /DUNICODE locker.cpp /link bcrypt.lib /SUBSYSTEM:CONSOLE /OUT:locker.exe
     - run: cl /O2 /std:c++17 /EHsc /D_UNICODE /DUNICODE wall.cpp /link user32.lib advapi32.lib /SUBSYSTEM:WINDOWS /OUT:wall.exe
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: exe
         path: |
